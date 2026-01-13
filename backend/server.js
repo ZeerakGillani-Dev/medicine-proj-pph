@@ -20,7 +20,7 @@ connectDB().catch(err => {
 
 
 app.use(cors({
-  origin: "http://localhost:3000", // frontend origin
+  origin: "http://localhost:5173", // frontend origin
   methods: ["GET", "DELETE", "PUT", "POST"],
   credentials: true
 }));
