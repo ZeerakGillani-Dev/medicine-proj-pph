@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Menu, X, Clipboard, List, FileSearch, Users, BarChart2, Truck } from "lucide-react";
+import { Menu, X, Clipboard, List, FileSearch, Users, BarChart2, Truck, RefreshCcw } from "lucide-react"; // 🆕 Added RefreshCcw
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,6 +38,8 @@ const Navbar = () => {
           <NavLink to="/participants" icon={<Users className="w-4 h-4 mr-2" />} text="Participants" />
           <NavLink to="/transactions" icon={<BarChart2 className="w-4 h-4 mr-2" />} text="Transactions" />
           <NavLink to="/shipments" icon={<Truck className="w-4 h-4 mr-2" />} text="Shipments" />
+          {/* 🆕 NEW LINK */}
+          <NavLink to="/update-shipment-status" icon={<RefreshCcw className="w-4 h-4 mr-2" />} text="Update Shipment" />
         </div>
 
         {isOpen && (
@@ -48,6 +50,8 @@ const Navbar = () => {
             <MobileNavLink to="/participants" icon={<Users className="w-5 h-5" />} text="Participants" />
             <MobileNavLink to="/transactions" icon={<BarChart2 className="w-5 h-5" />} text="Transactions" />
             <MobileNavLink to="/shipments" icon={<Truck className="w-5 h-5" />} text="Shipments" />
+            {/* 🆕 NEW MOBILE LINK */}
+            <MobileNavLink to="/update-shipment-status" icon={<RefreshCcw className="w-5 h-5" />} text="Update Shipment" />
           </div>
         )}
       </div>
@@ -71,7 +75,6 @@ const MobileNavLink = ({ to, icon, text }) => (
   <Link 
     to={to} 
     className="flex items-center px-4 py-3 hover:bg-gray-800 text-gray-300 hover:text-blue-400 transition-all"
-    onClick={() => setIsOpen(false)}
   >
     <span className="mr-3 text-blue-500">{icon}</span>
     <span>{text}</span>

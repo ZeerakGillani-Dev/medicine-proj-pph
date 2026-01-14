@@ -7,6 +7,7 @@ import Medicine from "./pages/MedicineDetails";
 import Participants from "./pages/Participants";
 import Transactions from "./pages/Transactions";
 import Shipments from "./pages/Shipments";
+import UpdateShipmentStatus from "./pages/UpdateShipmentStatus"; // 🆕 Add this
 import BackendStatusModal from './components/BackendStatusModal';
 import image from './assets/home.jpg';
 
@@ -23,6 +24,7 @@ function App() {
             <Route path="/participants" element={<Participants />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/shipments" element={<Shipments />} />
+            <Route path="/update-shipment-status" element={<UpdateShipmentStatus />} /> {/* 🆕 Add this */}
           </Routes>
     </Router>
   );

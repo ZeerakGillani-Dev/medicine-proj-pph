@@ -63,6 +63,7 @@ contract SupplyChain {
         address receiver;
         string trackingId;
         ShipmentStatus status;
+        string notes;  // Added for storing updates
     }
 
     // Structure for transaction tracking
@@ -92,6 +93,12 @@ contract SupplyChain {
     event ShipmentCreated(uint256 indexed medicineId, string trackingId);
     event ShipmentUpdated(string trackingId, ShipmentStatus status);
     event TransactionRecorded(uint256 indexed medicineId, string action, address participant);
+    event ShipmentStatusUpdated(
+        uint256 indexed shipmentId, 
+        uint256 indexed medicineId, 
+        string notes, 
+        address indexed updatedBy
+    );
 
     // Add new medicine (only owner)
     function addMedicine(string memory _name, string memory _description) public onlyOwner {
@@ -100,10 +107,10 @@ contract SupplyChain {
             medicineCounter,
             _name,
             _description,
-            address(0),  // No supplier assigned yet
-            address(0),  // No manufacturer assigned yet
-            address(0),  // No distributor assigned yet
-            address(0),  // No retailer assigned yet
+            address(0),
+            address(0),
+            address(0),
+            address(0),
             Stage.Ordered
         );
 
@@ -202,7 +209,14 @@ contract SupplyChain {
     // Create a shipment
     function createShipment(uint256 _medicineID, address _receiver, string memory _trackingId) public {
         require(medicines[_medicineID].distributor == msg.sender, "Only distributor can create shipment");
-        shipments[_trackingId] = Shipment(_medicineID, msg.sender, _receiver, _trackingId, ShipmentStatus.Pending);
+        shipments[_trackingId] = Shipment(
+            _medicineID, 
+            msg.sender, 
+            _receiver, 
+            _trackingId, 
+            ShipmentStatus.Pending,
+            ""  // Empty notes initially
+        );
 
         emit ShipmentCreated(_medicineID, _trackingId);
     }
@@ -224,5 +238,68 @@ contract SupplyChain {
     function recordTransaction(uint256 _medicineID, string memory _action, address _participant) internal {
         transactions.push(Transaction(_medicineID, _participant, _action, block.timestamp));
         emit TransactionRecorded(_medicineID, _action, _participant);
+    }
+
+    // ========== NEW FUNCTION: Update Shipment Status with Notes ==========
+    /**
+     * @dev Update shipment status with additional notes
+     * @param _trackingId The tracking ID of the shipment
+     * @param _notes Additional notes about the shipment status
+     */
+    function updateShipmentStatusWithNote(
+        string memory _trackingId,
+        string memory _notes
+    ) public {
+        // Check if shipment exists
+        require(shipments[_trackingId].sender != address(0), "Shipment not found");
+        
+        // Validate inputs
+        require(bytes(_notes).length > 0, "Notes cannot be empty");
+        
+        // Check authorization: only sender or receiver can update
+        require(
+            shipments[_trackingId].sender == msg.sender || 
+            shipments[_trackingId].receiver == msg.sender,
+            "Only shipment participants can update status"
+        );
+        
+        // Append the new note to existing notes
+        if (bytes(shipments[_trackingId].notes).length > 0) {
+            shipments[_trackingId].notes = string(abi.encodePacked(
+                shipments[_trackingId].notes,
+                " | UPDATE: ",
+                _notes
+            ));
+        } else {
+            shipments[_trackingId].notes = _notes;
+        }
+        
+        // Record the update as a transaction
+        uint256 medicineId = shipments[_trackingId].medicineId;
+        recordTransaction(medicineId, string(abi.encodePacked("Shipment Update: ", _notes)), msg.sender);
+        
+        // Emit event for logging
+        emit ShipmentStatusUpdated(0, medicineId, _notes, msg.sender);
+    }
+    
+    // Helper function to get shipment details including notes
+    function getShipmentDetails(string memory _trackingId) public view returns (
+        uint256 medicineId,
+        address sender,
+        address receiver,
+        string memory trackingId,
+        ShipmentStatus status,
+        string memory notes
+    ) {
+        require(shipments[_trackingId].sender != address(0), "Shipment not found");
+        Shipment memory shipment = shipments[_trackingId];
+        return (
+            shipment.medicineId,
+            shipment.sender,
+            shipment.receiver,
+            shipment.trackingId,
+            shipment.status,
+            shipment.notes
+        );
     }
 }
